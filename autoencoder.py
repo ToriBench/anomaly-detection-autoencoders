@@ -126,7 +126,7 @@ save_data(
   {
     'out/dataset.txt': dataset,
     'out/reconstructions.txt': reconstructions,
-    'out/anomaly_indices.txt': anomaly_indices
+    'out/anomaly_indices. txt': anomaly_indices
   }
 )
 print_images(dataset, reconstructions, anomaly_indices, show_anomalies=True)
