@@ -10,11 +10,8 @@ from keras.datasets import mnist
 from keras.models import Model
 from models import *
 from utils import *
-import io
-import sklearn.metrics
-import itertools
-import gc
 from packaging import version
+from parameters import *
 
 
 os.system("rm -rf ./logs/")
@@ -33,6 +30,7 @@ test_class_names = [str(x) for x in test_classes]
 number_of_classes = len(test_classes)
 cm = np.zeros((number_of_classes, number_of_classes))  # Confusion matrix
 accuracy_matrix = []
+
 
 def plot_accuracy(test_labels, anomaly_predictions, norm_class):
   results = []
@@ -91,7 +89,7 @@ for norm_class in test_classes:
 
     autoencoder = Autoencoder(encoder_layer_list, decoder_layer_list)
 
-    autoencoder.compile(optimizer='adam', loss='mse', metrics=['accuracy'])
+    autoencoder.compile(optimizer='adam', loss=train_loss_func, metrics=['accuracy'])
 
     log_dir = "logs/fit/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     tensorboard_callback = tf.keras.callbacks.TensorBoard(
@@ -108,9 +106,12 @@ for norm_class in test_classes:
     )
 
     history = autoencoder.fit(norm_train_data, norm_train_data,
-                              epochs=25,
+                              epochs=epochs,
                               validation_data=(norm_test_data, norm_test_data),
-                              callbacks=[tensorboard_callback, early_stopping_callback])
+                              callbacks=[tensorboard_callback])
+
+    path = f'models/{norm_class}/{epochs}_epochs_{train_loss_func}_trainloss_{test_loss_func}_testloss_{dirty_data_percentage}_dirtydata'
+    autoencoder.save(path)
 
     # Determine threshold from inputting normal test data
     reconstructions = autoencoder.predict(norm_train_data)
@@ -119,7 +120,7 @@ for norm_class in test_classes:
     # losses = np.zeros(len(norm_train_data))
     # for i in range(len(norm_train_data)):
     #     losses[i] = loss_function(norm_train_data[i], reconstructions[i]).numpy()
-    multiplier = 0.5 if (norm_class == 2 or 8) else 1
+    multiplier = 0.5 if (norm_class == 2) else ( 0.25 if (norm_class == 8) else 1)
     threshold = np.mean(losses) + multiplier * np.std(losses)
 
     reconstructions = autoencoder.predict(test_data)
@@ -133,8 +134,6 @@ for norm_class in test_classes:
 
     for i in range(number_of_inputs):
       test_loss = tf.keras.losses.mean_squared_error(tf.reshape(test_data[i],[784]), tf.reshape(reconstructions[i],[784]))
-      if (test_labels[i] == 1 and norm_class == 2) or (test_labels[i] == 2 and norm_class == 2):
-        print(f"norm_class = {norm_class} test_label = {test_labels[i]} test_loss = {test_loss}")
 
       if np.any(tf.math.greater(test_loss,threshold).numpy()):
           anomaly_predictions[i] = 1
