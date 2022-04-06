@@ -95,7 +95,8 @@ for norm_class in test_classes:
     # print_images(test_data[0:50], reconstructions[0:50],list(filtered), show_anomalies=False)
     
 
+image_path = f'images/accuracies/{epochs}_epochs_{train_loss_func}_trainloss_{test_loss_func}_testloss_{dirty_data_percentage}_percentdirtydata.png'
 
 cm_figure = plot_confusion_matrix(np.array(accuracy_matrix), class_names=test_class_names,
                       title='Accuracy of each model per class', 
-                      axis_names=['Inputs', 'Trained Models']) 
+                      axis_names=['Inputs', 'Trained Models'], path=image_path)

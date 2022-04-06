@@ -12,6 +12,7 @@ from models import *
 from utils import *
 from packaging import version
 from parameters import *
+import math
 
 
 os.system("rm -rf ./logs/")
@@ -51,8 +52,16 @@ for norm_class in test_classes:
     train_filter_norm = np.where(y_train == norm_class)
     test_filter_norm = np.where(y_test == norm_class)
 
+    dirty_data_filter = np.where(y_train != norm_class)
+
     norm_train_data, norm_train_labels = x_train[train_filter_norm], y_train[train_filter_norm]
     norm_test_data, norm_test_labels = x_test[test_filter_norm], y_test[test_filter_norm]
+
+    dirty_data, dirty_data_labels = x_train[dirty_data_filter], y_train[dirty_data_filter]
+
+    for i in range(math.ceil(len(norm_train_data)*(dirty_data_percentage/100))):
+      norm_train_data[i]=dirty_data[i]
+      print(f'replaced a {norm_test_labels[i]} with a {dirty_data_labels[i]}')
 
     print("number of ", norm_class, "'s in test data: ", len(norm_test_labels))
 
@@ -110,7 +119,7 @@ for norm_class in test_classes:
                               validation_data=(norm_test_data, norm_test_data),
                               callbacks=[tensorboard_callback])
 
-    path = f'models/{norm_class}/{epochs}_epochs_{train_loss_func}_trainloss_{test_loss_func}_testloss_{dirty_data_percentage}_dirtydata'
+    path = f'models/{norm_class}/{epochs}_epochs_{train_loss_func}_trainloss_{test_loss_func}_testloss_{dirty_data_percentage}_percentdirtydata'
     autoencoder.save(path)
 
     # Determine threshold from inputting normal test data
@@ -156,10 +165,11 @@ for norm_class in test_classes:
     # print_images(test_data[0:50], reconstructions[0:50],list(filtered), show_anomalies=False)
     
 
+image_path = f'images/accuracies/{epochs}_epochs_{train_loss_func}_trainloss_{test_loss_func}_testloss_{dirty_data_percentage}_percentdirtydata.png'
 
 cm_figure = plot_confusion_matrix(np.array(accuracy_matrix), class_names=test_class_names,
                       title='Accuracy of each model per class', 
-                      axis_names=['Inputs', 'Trained Models'])
+                      axis_names=['Inputs', 'Trained Models'], path=image_path)
 
 
 

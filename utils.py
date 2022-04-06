@@ -79,7 +79,7 @@ def load_data(filenames):
     return cm, anomaly_indices
 
 
-def plot_confusion_matrix(cm, class_names, title, axis_names):
+def plot_confusion_matrix(cm, class_names, title, axis_names, path):
     """
     Returns a matplotlib figure containing the plotted confusion matrix.
 
@@ -107,6 +107,8 @@ def plot_confusion_matrix(cm, class_names, title, axis_names):
     plt.tight_layout()
     plt.ylabel(axis_names[1])
     plt.xlabel(axis_names[0])
+
+    plt.savefig(path)
     plt.show()
 
     return figure
