@@ -12,4 +12,16 @@ class Autoencoder(Model):
     decoded = self.decoder(encoded)
     return decoded
 
+class Encoder(Model):
 
+  def __init__(self):
+    super(Encoder, self).__init__()
+    self.layers = tf.keras.Sequential([
+      layers.Flatten(),
+      layers.Dense(128, activation="relu"),
+      layers.Dense(64, activation="relu"),
+      layers.Dense(25, activation="relu"),
+    ])
+
+  def call(self, inputs, training=None, mask=None):
+    return self.layers(inputs)
