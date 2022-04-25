@@ -49,27 +49,28 @@ for norm_class in test_classes:
     norm_test_data, norm_test_labels = test_embeddings[np.where(y_test == norm_class)], y_test[np.where(y_test == norm_class)]
 
     # label anomalous (1) and normal (0) data
-    norm_train_labels = [0 if x == norm_class else 1 for x in norm_train_labels]
-    norm_test_labels = [0 if x == norm_class else 1 for x in norm_test_labels]
+    norm_train_labels = [0 if x == norm_class else 1 for x in y_train]
+    norm_test_labels = [0 if x == norm_class else 1 for x in y_test]
 
     # Set up a logs directory, so Tensorboard knows where to look for files.
     log_dir = os.path.join('./logs', f'projection_{norm_class}')
     os.makedirs(log_dir, exist_ok=True)
 
     # Save Labels separately on a line-by-line manner.
-    with open(os.path.join(log_dir, f'metadata_{norm_class}.tsv'), "w") as f:
+    with open(os.path.join(log_dir, f'metadata.tsv'), "w") as f:
         for l in norm_test_labels:
             f.write(f"{int(l)}\n")
 
     # Create a checkpoint from embedding
-    embeddings = tf.Variable(test_embeddings)
+    embeddings = tf.Variable(test_embeddings, name='features')
     checkpoint = tf.train.Checkpoint(embedding=embeddings)
-    checkpoint.save(os.path.join(log_dir, f"embedding_{norm_class}.ckpt"))
+    checkpoint.save(os.path.join(log_dir, f"embedding.ckpt"))
 
     # Set up config.
     config = projector.ProjectorConfig()
     embedding = config.embeddings.add()
 
     # visualize data
+    embedding.tensor_name = "embedding/.ATTRIBUTES/VARIABLE_VALUE"
     embedding.metadata_path = 'metadata.tsv'
     projector.visualize_embeddings(log_dir, config)
